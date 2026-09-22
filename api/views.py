@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from base .models import Item
-from .serializers import ItemSerializer
+from base .models import Item , OrderItem, Order
+from .serializers import ItemSerializer,OrderSerializer
 
 @api_view(['POST'])
 def addItem(request):
@@ -20,4 +20,11 @@ def product_list(request):
 
 @api_view(['PUT'])
 def update_item(request):
-    serializer = ItemSerializer(item)
+    serializer = ItemSerializer(Item)
+
+
+@api_view(['GET'])
+def order_list(request):
+    orders = Order.objects.all()
+    serializer = OrderSerializer(orders, many = True)
+    return Response(serializer.data)
