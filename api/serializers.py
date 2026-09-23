@@ -57,3 +57,14 @@ class ItemInfoSerializer(serializers.Serializer):
     product = ItemSerializer(many=True)
     count = serializers.IntegerField()
     max_price = serializers.FloatField()
+
+class UserInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'email'
+        )
