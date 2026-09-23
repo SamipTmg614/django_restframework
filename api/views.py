@@ -41,3 +41,12 @@ def product_info(request):
         }
     )
     return Response(serializer.data)
+
+
+@api_view(['GET'])
+def product_infobyid(request , pk):
+    product = Item.objects.get(id = pk)
+    serializer = ItemSerializer(
+        product
+    )
+    return Response(serializer.data)
