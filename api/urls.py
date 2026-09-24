@@ -18,6 +18,10 @@ urlpatterns = [
         'users/<int:user_id>/orders/<uuid:order_id>/',
         views.user_order
     ),
+    path(
+            'users/<int:user_id>/orders/<uuid:order_id>/items/',
+            views.add_order_item
+        ),
     path('users/', views.create_user),
     path('users/<int:user_id>', views.user_info),
 

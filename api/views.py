@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from base .models import Item , OrderItem, Order , User
-from .serializers import ItemSerializer,OrderSerializer , ItemInfoSerializer , UserInfoSerializer , UserCreateSerializer
+from .serializers import ItemSerializer,OrderSerializer , ItemInfoSerializer , UserInfoSerializer , UserCreateSerializer , OrderItemSerializer
 
 
 # get and search products
@@ -143,15 +143,26 @@ def product_infobyid(request , pk):
     return Response(serializer.data)
 
 
-@api_view(['GET'])
+@api_view(['GET','POST'])
 @permission_classes([AllowAny])
 def user_orders(request, user_id):
-    orders = Order.objects.filter(user_id=user_id)
-    serializer = OrderSerializer(orders, many=True)
-    return Response(serializer.data)
+    user = get_object_or_404(User, id=user_id)
+    if request.method == 'GET':
+        orders = Order.objects.filter(user=user)
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
+
+    if request.method == 'POST':
+        order = Order.objects.create(user=user)
+
+        serializer = OrderSerializer(order)
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED
+        )
 
 
-@api_view(['GET'])
+@api_view(['GET','PUT','PATCH'])
 def user_order(request, user_id, order_id):
     order = get_object_or_404(
         Order,
@@ -159,6 +170,44 @@ def user_order(request, user_id, order_id):
         order_id=order_id
     )
 
-    serializer = OrderSerializer(order)
+    if request.method == 'GET':
+        serializer = OrderSerializer(order)
+        return Response(serializer.data)
 
-    return Response(serializer.data)
+    serializer = OrderSerializer(
+        order,
+        data=request.data,
+        partial=request.method == 'PATCH'
+    )
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST
+    )
+
+@api_view(['POST'])
+def add_order_item(request, user_id, order_id):
+
+    order = get_object_or_404(
+        Order,
+        user_id=user_id,
+        order_id=order_id
+    )
+
+    serializer = OrderItemSerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save(order=order)
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED
+        )
+
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST
+    )
