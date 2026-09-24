@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from base .models import Item , OrderItem, Order , User
-from .serializers import ItemSerializer,OrderSerializer , ItemInfoSerializer , UserInfoSerializer
+from .serializers import ItemSerializer,OrderSerializer , ItemInfoSerializer , UserInfoSerializer , UserCreateSerializer
 
 
 # get and search products
@@ -95,14 +95,44 @@ def product_info(request):
 
 
 # get user info using userid
-@api_view(['GET'])
-def user_info(request,user_id):
-    user = get_object_or_404(User,id = user_id)
-    serializer = UserInfoSerializer(
-        user
-    )
-    return Response(serializer.data)
+@api_view(['GET', 'PUT', 'PATCH'])
+def user_info(request, user_id):
+    user = get_object_or_404(User, id=user_id)
 
+    if request.method == 'GET':
+        serializer = UserInfoSerializer(user)
+        return Response(serializer.data)
+
+    serializer = UserInfoSerializer(
+        user,
+        data=request.data,
+        partial=request.method == 'PATCH'
+    )
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST
+    )
+
+@api_view(['POST'])
+def create_user(request):
+    serializer = UserCreateSerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED
+        )
+
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST
+    )
 
 @api_view(['GET'])
 def product_infobyid(request , pk):
