@@ -25,4 +25,7 @@ urlpatterns = [
     path('users/', views.create_user),
     path('users/<int:user_id>', views.user_info),
 
+    path("users/<int:user_id>/recommendations/", views.get_recommendations),
+    
+
 ]

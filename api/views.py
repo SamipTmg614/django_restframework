@@ -8,6 +8,7 @@ from rest_framework.decorators import api_view, permission_classes
 from base .models import Item , OrderItem, Order , User
 from .serializers import ItemSerializer,OrderSerializer , ItemInfoSerializer , UserInfoSerializer , UserCreateSerializer , OrderItemSerializer
 
+from base. recommendations import get_recommendations_for_user
 
 # get and search products
 @api_view(['GET','POST'])
@@ -272,3 +273,34 @@ def order_item(request, user_id, order_id, item_id):
         serializer.errors,
         status=status.HTTP_400_BAD_REQUEST
     )
+
+@api_view(['GET'])
+def get_recommendations(request,user_id):
+    top_n = int(request.query_params.get("top_n", 5))
+ 
+    recommendations = get_recommendations_for_user(user_id, top_n=top_n)
+ 
+    if recommendations is None:
+            return Response(
+                {"detail": "No purchase history found for this user."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+ 
+    # Attach item details (name, price) rather than returning bare IDs
+    item_ids = [r["item_id"] for r in recommendations]
+    items_by_id = {item.id: item for item in Item.objects.filter(id__in=item_ids)}
+ 
+    results = []
+    for rec in recommendations:
+        item = items_by_id.get(rec["item_id"])
+        if item is None:
+            continue
+        results.append({
+            "item_id": item.id,
+                "name": item.name,
+                "price": str(item.price),
+                "score": round(rec["score"], 4),
+            })
+ 
+    return Response({"user_id": user_id, "recommendations": results})
+ 
