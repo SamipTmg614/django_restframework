@@ -2,6 +2,8 @@ from django.db.models import Max,Q
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAdminUser , AllowAny
 from rest_framework import status
+from rest_framework_api_key import HasAPIKey
+
 
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
@@ -276,6 +278,7 @@ def order_item(request, user_id, order_id, item_id):
 
 @api_view(['GET'])
 def get_recommendations(request,user_id):
+    permission_classes = [HasAPIKey]
     top_n = int(request.query_params.get("top_n", 5))
  
     recommendations = get_recommendations_for_user(user_id, top_n=top_n)
