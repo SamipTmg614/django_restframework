@@ -2,8 +2,7 @@ from django.db.models import Max,Q
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAdminUser , AllowAny
 from rest_framework import status
-from rest_framework_api_key import HasAPIKey
-
+from rest_framework_api_key.permissions import HasAPIKey
 
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
